@@ -295,6 +295,33 @@ nav button.on{color:#fff;font-weight:700}nav button.on .ic{transform:translateY(
 <input type="file" id="opf" accept="image/*" hidden>
 <input type="file" id="apf" accept="image/*" hidden>
 <script>
+/* Android app: native media notification bridge (Capacitor). Does nothing in a normal browser. */
+(function(){
+ try{
+  var C=window.Capacitor;
+  if(!C||!C.isNativePlatform||!C.isNativePlatform()||C.getPlatform()!=='android')return;
+  var P=C.registerPlugin('MediaSession');
+  var md=null,ps='none';
+  function send(fn,a,b){try{var r=P[fn](a,b);if(r&&r.catch)r.catch(function(){})}catch(e){}}
+  function MM(o){o=o||{};this.title=o.title||'';this.artist=o.artist||'';this.album=o.album||'';this.artwork=o.artwork||[]}
+  window.MediaMetadata=MM;
+  var ms={
+   get metadata(){return md},
+   set metadata(m){md=m;if(m)send('setMetadata',{title:m.title,artist:m.artist,album:m.album,artwork:m.artwork})},
+   get playbackState(){return ps},
+   set playbackState(s){ps=s;send('setPlaybackState',{playbackState:s})},
+   setActionHandler:function(a,h){send('setActionHandler',{action:a},h||null)},
+   setPositionState:function(s){if(s)send('setPositionState',s)}
+  };
+  Object.defineProperty(navigator,'mediaSession',{value:ms,configurable:true});
+  try{
+   var L=C.registerPlugin('LocalNotifications');
+   L.checkPermissions().then(function(r){if(r.display!=='granted')L.requestPermissions()}).catch(function(){});
+  }catch(e){}
+ }catch(e){}
+})();
+</script>
+<script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const I=(n,c='')=>`<svg class="ic ${c}"><use href="#i-${n}"/></svg>`;
 let db,songs=[],list=[],q=[],arts=[],view=0,curId=null,fq='',fa='',pgi=0,wpRec=null,defRec=null,defUrl='',wpURL='',prof=null,profUrl='',bt=0;
