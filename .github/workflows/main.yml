@@ -30,10 +30,16 @@ jobs:
       - name: Create Android project
         run: |
           npm init -y
-          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/local-notifications@6 @jofr/capacitor-media-session@4
           npx cap init AeroBeats com.salman.aerobeats --web-dir=www
           npx cap add android
           npx cap sync android
+
+      - name: Add notification permissions
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          sed -i 's|<application|<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>\n    <application|' $M
+          grep -n "uses-permission" $M
 
       - name: Set app icon
         run: |
@@ -55,3 +61,4 @@ jobs:
         with:
           name: AeroBeats-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          
